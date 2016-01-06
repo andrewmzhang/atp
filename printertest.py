@@ -49,9 +49,9 @@ printer.justify('L')
 printer.feed(1)
 # CODE39 is the most common alphanumeric barcode
 printer.printBarcode("ADAFRUT", printer.CODE39)
-printer.setBarcodeHeight(100)
+#printer.setBarcodeHeight(100)
 # Print UPC line on product barcodes
-printer.printBarcode("123456789123", printer.UPC_A)
+#printer.printBarcode("123456789123", printer.UPC_A)
 
 # Print the 75x75 pixel logo in adalogo.py
 import gfx.adalogo as adalogo
