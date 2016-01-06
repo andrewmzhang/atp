@@ -14,7 +14,7 @@
 # http://www.adafruit.com/products/600 Printer starter pack
 
 from __future__ import print_function
-import urllib, time
+import urllib, time, sys
 from Adafruit_Thermal import *
 from xml.dom.minidom import parseString
 
@@ -23,7 +23,7 @@ from xml.dom.minidom import parseString
 # by 'manually' visiting http://weather.yahoo.com, entering a location
 # and requesting a forecast, then copy the number from the end of the
 # current URL string and paste it here.
-WOEID = '2459115'
+WOEID = sys.argv[1]
 
 # Dumps one forecast line to the printer
 def forecast(idx):
