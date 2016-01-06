@@ -56,9 +56,9 @@ class Adafruit_Thermal(Serial):
 		# If no parameters given, use default port & baud rate.
 		# If only port is passed, use default baud rate.
 		# If both passed, use those values.
-		baudrate = 19200
+		baudrate = 9600
 		if len(args) == 0:
-			args = [ "/dev/ttyAMA0", baudrate ]
+			args = [ "/dev/serial/by-id/usb-Prolific_Technology_Inc._USB-Serial_Controller-if00-port0", baudrate ]
 		elif len(args) == 1:
 			args = [ args[0], baudrate ]
 		else:
