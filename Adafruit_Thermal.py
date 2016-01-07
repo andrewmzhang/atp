@@ -232,6 +232,8 @@ class Adafruit_Thermal(Serial):
 		self.online()
 		self.justify('L')
 		self.inverseOff()
+		self.upsideDownOff()
+		self.sidewaysOff()
 		self.doubleHeightOff()
 		self.setLineHeight(32)
 		self.boldOff()
