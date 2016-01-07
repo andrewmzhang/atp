@@ -366,6 +366,11 @@ class Adafruit_Thermal(Serial):
 	def boldOff(self):
 		self.unsetPrintMode(self.BOLD_MASK)
 
+	def tinyFontOn(self):
+		self.writeBytes(0x1B, 0x21, 1)
+	
+	def tinyFontOff(self):
+		self.writeBytes(0x1B, 0x21, 0)
 
 	def justify(self, value):
 		c = value.upper()
