@@ -270,9 +270,6 @@ class atp(Serial):
 
 	# === Character commands ===
 
-	INVERSE_MASK       = (1 << 1)
-	UPDOWN_MASK        = (1 << 2)
-	BOLD_MASK          = (1 << 3)
 	DOUBLE_HEIGHT_MASK = (1 << 4)
 	DOUBLE_WIDTH_MASK  = (1 << 5)
 
@@ -303,26 +300,6 @@ class atp(Serial):
 	def writePrintMode(self):
 		self.writeBytes(27, 33, self.printMode)
 
-	def normal(self):
-		self.printMode = 0
-		self.writePrintMode()
-
-	def inverseOn(self):
-		#self.setPrintMode(self.INVERSE_MASK)
-		self.writeBytes(29, 66, 1)
-
-	def inverseOff(self):
-		#self.unsetPrintMode(self.INVERSE_MASK)
-		self.writeBytes(29, 66, 0)
-
-	def upsideDownOn(self):
-		#self.setPrintMode(self.UPDOWN_MASK)
-		self.writeBytes(27, 123, 1)
-
-	def upsideDownOff(self):
-		#self.unsetPrintMode(self.UPDOWN_MASK)
-		self.writeBytes(27, 123, 0)
-
 	def doubleHeightOn(self):
 		self.setPrintMode(self.DOUBLE_HEIGHT_MASK)
 
@@ -335,6 +312,24 @@ class atp(Serial):
 	def doubleWidthOff(self):
 		self.unsetPrintMode(self.DOUBLE_WIDTH_MASK)
 
+	def normal(self):
+		self.printMode = 0
+		self.writePrintMode()
+	
+	# === Style commands ===
+	
+	def inverseOn(self):
+		self.writeBytes(29, 66, 1)
+
+	def inverseOff(self):
+		self.writeBytes(29, 66, 0)
+
+	def upsideDownOn(self):
+		self.writeBytes(27, 123, 1)
+
+	def upsideDownOff(self):
+		self.writeBytes(27, 123, 0)
+
 	def sidewaysOn(self):     
 		self.writeBytes(27, 86, 1)
 
@@ -342,10 +337,10 @@ class atp(Serial):
 		self.writeBytes(27, 86, 0)   
 
 	def boldOn(self):
-		self.setPrintMode(self.BOLD_MASK)
+		self.writeBytes(27, 69, 1)
 
 	def boldOff(self):
-		self.unsetPrintMode(self.BOLD_MASK)
+		self.writeBytes(27, 69, 0)
 
 	# Underlines of two different weights can be produced:
 	# 1 - 1 dot thick underline
@@ -356,6 +351,8 @@ class atp(Serial):
 	def underlineOff(self):
 		self.underlineOn(0)
 
+	# - setting other style commands seems to reset font to fontA,
+	#   so we end up in a state with full size font by tiny metrics.
 	def tinyFontOn(self):
 		# 27 33
 		self.writeBytes(27, 33, 1)
