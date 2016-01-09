@@ -86,4 +86,4 @@ forecast(0)
 forecast(1)
 forecast(2)
 
-printer.feed(2)
+printer.feedClear()

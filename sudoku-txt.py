@@ -25,7 +25,7 @@ from atp import *
 printer = atp(timeout=5)
 
 def main():
-  printer.setLineHeight(24) # So graphical chars fit together
+  printer.setLineSpacing(0) # So graphical chars fit together
   args = sys.argv[1:]
   if len(args) > 0:
     puzzles = [loadboard(filename) for filename in args]
@@ -43,7 +43,7 @@ def main():
       answer = solution(puzzle)
       if answer is None: printer.println("NO SOLUTION")
       else: printer.print(printboard(answer))
-  printer.feed(3)
+  printer.feedClear()
 
 def makepuzzle(board):
   puzzle = []; deduced = [None] * 81

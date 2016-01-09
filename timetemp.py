@@ -167,4 +167,4 @@ else:                  img.paste(Mph, (x, y))
 # Open connection to printer and print image
 printer = atp(timeout=5)
 printer.printImage(img, True)
-printer.feed(3)
+printer.feedClear()
