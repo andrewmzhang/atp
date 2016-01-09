@@ -390,7 +390,11 @@ class Adafruit_Thermal(Serial):
 	def flush(self):
 		self.writeBytes(12)
 
-
+	# L (large) = double width and double height
+	# M (medium) = double height
+	# W (wide) = double width
+	# S (standard)
+	# Todo: reconcile with writePrintMode size methods
 	def setSize(self, value):
 		c = value.upper()
 		if c == 'L':   # Large: double width and height
@@ -401,14 +405,15 @@ class Adafruit_Thermal(Serial):
 			size            = 0x01
 			self.charHeight = 48
 			self.maxColumn  = 32
+		elif c =='W': # Wide: double width
+			size            = 0x10
+			self.charHeight = 24
+			self.maxColumn  = 16
 		else:          # Small: standard width and height
 			size            = 0x00
 			self.charHeight = 24
 			self.maxColumn  = 32
-
-		self.writeBytes(29, 33, size, 10)
-		prevByte = '\n' # Setting the size adds a linefeed
-
+		self.writeBytes(29, 33, size)
 
 	# Underlines of two different weights can be produced:
 	# 1 - 1 dot thick underline
