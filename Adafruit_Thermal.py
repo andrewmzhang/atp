@@ -535,13 +535,6 @@ class Adafruit_Thermal(Serial):
 			self.writeBytes(27)
 			self.timeoutSet(0.1)
 
-
-	# Empty method, included for compatibility
-	# with existing code ported from Arduino.
-	def listen(self):
-		pass
-
-
 	# Check the status of the paper using the printers self reporting
 	# ability. Doesn't match the datasheet...
 	# Returns True for paper, False for no paper.
