@@ -546,11 +546,6 @@ class Adafruit_Thermal(Serial):
 		# (char height of 24, line spacing of 8).
 		self.writeBytes(27, 51, val)
 
-
-	# Copied from Arduino lib for parity; is marked 'not working' there
-	def tab(self):
-		self.writeBytes(9)
-
 	# Overloading print() in Python pre-3.0 is dirty pool,
 	# but these are here to provide more direct compatibility
 	# with existing code written for the Arduino library.
