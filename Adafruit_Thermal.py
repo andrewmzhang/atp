@@ -72,14 +72,11 @@ class Adafruit_Thermal(Serial):
 
 		Serial.__init__(self, *args, **kwargs)
 
-		# Remainder of this method was previously in begin()
-
 		# The printer can't start receiving data immediately upon
 		# power up -- it needs a moment to cold boot and initialize.
 		# Allow at least 1/2 sec of uptime before printer can
 		# receive data.
 		self.timeoutSet(0.5)
-
 		self.wake()
 		self.reset()
 
@@ -125,7 +122,32 @@ class Adafruit_Thermal(Serial):
 		self.dotPrintTime = 0.03
 		self.dotFeedTime  = 0.0021
 
+	def reset(self):
+		self.prevByte      = '\n' # Treat as if prior line is blank
+		self.column        =  0
+		self.maxColumn     = 32
+		self.charHeight    = 24
+		self.lineSpacing   =  8
+		self.barcodeHeight = 50
+		# Init printer signal:
+		self.writeBytes(27, 64)
 
+	# Reset text formatting parameters.
+	def setDefault(self):
+		self.online()
+		self.justify('L')
+		self.inverseOff()
+		self.upsideDownOff()
+		self.sidewaysOff()
+		self.doubleHeightOff()
+		self.setLineHeight(32)
+		self.boldOff()
+		self.underlineOff()
+		self.setBarcodeHeight(50)
+		self.setSize('s')
+	
+	# === Timing commands ===
+	
 	# Because there's no flow control between the printer and computer,
 	# special care must be taken to avoid overrunning the printer's
 	# buffer.  Serial output is throttled based on serial speed as well
@@ -146,10 +168,9 @@ class Adafruit_Thermal(Serial):
 	def timeoutWait(self):
 		while (time.time() - self.resumeTime) < 0: pass
 
-
 	# Printer performance may vary based on the power supply voltage,
 	# thickness of paper, phase of the moon and other seemingly random
-	# variables.  This method sets the times (in microseconds) for the
+	# variables.  This method sets the times (in seconds) for the
 	# paper to advance one vertical 'dot' when printing and feeding.
 	# For example, in the default initialized state, normal-sized text
 	# is 24 dots tall and the line spacing is 32 dots, so the time for
@@ -158,12 +179,24 @@ class Adafruit_Thermal(Serial):
 	# test unit, but as stated above your reality may be influenced by
 	# many factors.  This lets you tweak the timing to avoid excessive
 	# delays and/or overrunning the printer buffer.
-	def setTimes(self, p, f):
-		# Units are in microseconds for
-		# compatibility with Arduino library
-		self.dotPrintTime = p / 1000000.0
-		self.dotFeedTime  = f / 1000000.0
+	def setTimes(self, p=0.03, f=0.0021):
+		self.dotPrintTime = p
+		self.dotFeedTime  = f
 
+	# === Write/print commands ===
+
+	# Overloading print() in Python pre-3.0 is dirty pool,
+	# but these are here to provide more direct compatibility
+	# with existing code written for the Arduino library.
+	def print(self, *args, **kwargs):
+		for arg in args:
+			self.write(str(arg))
+
+	# For Arduino code compatibility again
+	def println(self, *args, **kwargs):
+		for arg in args:
+			self.write(str(arg))
+		self.write('\n')
 
 	# 'Raw' byte-writing method
 	def writeBytes(self, *args):
@@ -171,7 +204,6 @@ class Adafruit_Thermal(Serial):
 		self.timeoutSet(len(args) * self.byteTime)
 		for arg in args:
 			super(Adafruit_Thermal, self).write(chr(arg))
-
 
 	# Override write() method to keep track of paper feed.
 	def write(self, *data):
@@ -204,29 +236,7 @@ class Adafruit_Thermal(Serial):
 				self.timeoutSet(d)
 				self.prevByte = c
 
-	def reset(self):
-		self.prevByte      = '\n' # Treat as if prior line is blank
-		self.column        =  0
-		self.maxColumn     = 32
-		self.charHeight    = 24
-		self.lineSpacing   =  8
-		self.barcodeHeight = 50
-		self.writeBytes(27, 64)
-
-
-	# Reset text formatting parameters.
-	def setDefault(self):
-		self.online()
-		self.justify('L')
-		self.inverseOff()
-		self.upsideDownOff()
-		self.sidewaysOff()
-		self.doubleHeightOff()
-		self.setLineHeight(32)
-		self.boldOff()
-		self.underlineOff()
-		self.setBarcodeHeight(50)
-		self.setSize('s')
+	# === Barcode commands ===
 
 	UPC_A   =  0
 	UPC_E   =  1
@@ -257,7 +267,6 @@ class Adafruit_Thermal(Serial):
 			val = 1
 		self.barcodeHeight = val
 		self.writeBytes(29, 104, val)
-
 
 	# === Character commands ===
 
@@ -345,21 +354,30 @@ class Adafruit_Thermal(Serial):
 	def boldOff(self):
 		self.unsetPrintMode(self.BOLD_MASK)
 
+	# Underlines of two different weights can be produced:
+	# 1 - 1 dot thick underline
+	# 2 - 2 dot thick underline
+	def underlineOn(self, weight=1):
+		self.writeBytes(27, 45, weight)
+
+	def underlineOff(self):
+		self.underlineOn(0)
+
 	def tinyFontOn(self):
-		self.writeBytes(0x1B, 0x21, 1)
+		# 27 33
+		self.writeBytes(27, 33, 1)
+		self.charHeight = 17
+		self.maxColumn = 42
+		# 22 lineheight = 17 char + 5 inter lineSpacing
+		self.setLineHeight(22)
 	
 	def tinyFontOff(self):
-		self.writeBytes(0x1B, 0x21, 0)
+		self.writeBytes(27, 33, 0)
+		self.charHeight = 24
+		self.maxColumn = 32
+		self.setLineHeight()
 
-	def justify(self, value):
-		c = value.upper()
-		if   c == 'C':
-			pos = 1
-		elif c == 'R':
-			pos = 2
-		else:
-			pos = 0
-		self.writeBytes(0x1B, 0x61, pos)
+	# === Feed commands ===
 
 	# Feeds by the specified number of lines
 	def feed(self, x=1):
@@ -378,6 +396,22 @@ class Adafruit_Thermal(Serial):
 	def feedClear(self):
 		self.feedRows(60)
 
+	# Flush/form feed
+	def flush(self):
+		self.writeBytes(12)
+
+	# === Layout commands ===
+
+	def justify(self, value):
+		c = value.upper()
+		if   c == 'C':
+			pos = 1
+		elif c == 'R':
+			pos = 2
+		else:
+			pos = 0
+		self.writeBytes(0x1B, 0x61, pos)
+
 	# Set a tab stop at the listed columns (>0)
 	# Call with no args to reset (remove) tab stops
 	# Contrary to documentation, I find no default tab stops
@@ -386,9 +420,6 @@ class Adafruit_Thermal(Serial):
 		for stop in stops:
 			self.writeBytes(stop)
 		self.writeBytes(0)
-
-	def flush(self):
-		self.writeBytes(12)
 
 	# L (large) = double width and double height
 	# M (medium) = double height
@@ -415,15 +446,18 @@ class Adafruit_Thermal(Serial):
 			self.maxColumn  = 32
 		self.writeBytes(29, 33, size)
 
-	# Underlines of two different weights can be produced:
-	# 1 - 1 dot thick underline
-	# 2 - 2 dot thick underline
-	def underlineOn(self, weight=1):
-		self.writeBytes(27, 45, weight)
+	def setLineHeight(self, val=32):
+		if val < 24:
+			val = 24
+		self.lineSpacing = val - 24
 
-	def underlineOff(self):
-		self.underlineOn(0)
+		# The printer doesn't take into account the current text
+		# height when setting line height, making this more akin
+		# to inter-line spacing.  Default line spacing is 32
+		# (char height of 24, line spacing of 8).
+		self.writeBytes(27, 51, val)
 
+	# === Bitmap/image commands ===
 
 	def printBitmap(self, w, h, bitmap, LaaT=False):
 		rowBytes = (w + 7) / 8  # Round up to next byte boundary
@@ -497,28 +531,25 @@ class Adafruit_Thermal(Serial):
 
 		self.printBitmap(width, height, bitmap, LaaT)
 
+	# === Status commands ===
 
 	# Take the printer offline. Print commands sent after this
 	# will be ignored until 'online' is called.
 	def offline(self):
 		self.writeBytes(27, 61, 0)
 
-
 	# Take the printer online. Subsequent print commands will be obeyed.
 	def online(self):
 		self.writeBytes(27, 61, 1)
-
 
 	# Put the printer into a low-energy state immediately.
 	def sleep(self):
 		self.sleepAfter(1)
 
-
 	# Put the printer into a low-energy state after
 	# the given number of seconds.
 	def sleepAfter(self, seconds):
 		self.writeBytes(27, 56, seconds)
-
 
 	def wake(self):
 		self.timeoutSet(0);
@@ -526,28 +557,4 @@ class Adafruit_Thermal(Serial):
 		for i in range(10):
 			self.writeBytes(27)
 			self.timeoutSet(0.1)
-
-	def setLineHeight(self, val=32):
-		if val < 24:
-			val = 24
-		self.lineSpacing = val - 24
-
-		# The printer doesn't take into account the current text
-		# height when setting line height, making this more akin
-		# to inter-line spacing.  Default line spacing is 32
-		# (char height of 24, line spacing of 8).
-		self.writeBytes(27, 51, val)
-
-	# Overloading print() in Python pre-3.0 is dirty pool,
-	# but these are here to provide more direct compatibility
-	# with existing code written for the Arduino library.
-	def print(self, *args, **kwargs):
-		for arg in args:
-			self.write(str(arg))
-
-	# For Arduino code compatibility again
-	def println(self, *args, **kwargs):
-		for arg in args:
-			self.write(str(arg))
-		self.write('\n')
 
