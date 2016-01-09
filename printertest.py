@@ -9,11 +9,6 @@ printer.inverseOn()
 printer.println("Inverse ON")
 printer.inverseOff()
 
-# Test character double-height on & off
-printer.doubleHeightOn()
-printer.println("Double Height ON")
-printer.doubleHeightOff()
-
 # Set justification (right, center, left) -- accepts 'L', 'C', 'R'
 printer.justify(printer.RIGHT)
 printer.println("Right justified")
@@ -31,19 +26,24 @@ printer.underlineOn()
 printer.println("Underlined text")
 printer.underlineOff()
 
-printer.setSize('L')   # Set type size, accepts 'S', 'M', 'L'
+printer.setSize(printer.TINY)
+printer.println("Tiny")
+printer.setSize(printer.TALL)
+printer.println("Tall")
+printer.setSize(printer.WIDE)
+printer.println("Wide")
+printer.setSize(printer.LARGE)
 printer.println("Large")
-printer.setSize('M')
-printer.println("Medium")
-printer.setSize('S')
-printer.println("Small")
+printer.setSize(printer.NORMAL)
+printer.println("Normal")
 
 printer.justify(printer.CENTER)
 printer.println("normal\nline\nspacing")
-printer.setLineHeight(50)
+
+printer.setLineSpacing(18)
 printer.println("Taller\nline\nspacing")
  # Reset to default
-printer.setLineHeight()
+printer.setLineSpacing()
 printer.justify()
 
 # Barcode examples

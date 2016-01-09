@@ -49,7 +49,6 @@ class atp(Serial):
 	charHeight      = 24
 	lineSpacing     =  8
 	barcodeHeight   = 50
-	printMode       =  0
 	defaultHeatTime = 45
 
 	def __init__(self, *args, **kwargs):
@@ -267,54 +266,6 @@ class atp(Serial):
 			val = 1
 		self.barcodeHeight = val
 		self.writeBytes(29, 104, val)
-
-	# === Character commands ===
-
-	DOUBLE_HEIGHT_MASK = (1 << 4)
-	DOUBLE_WIDTH_MASK  = (1 << 5)
-
-	def setPrintMode(self, mask):
-		self.printMode |= mask
-		self.writePrintMode()
-		if self.printMode & self.DOUBLE_HEIGHT_MASK:
-			self.charHeight = 48
-		else:
-			self.charHeight = 24
-		if self.printMode & self.DOUBLE_WIDTH_MASK:
-			self.maxColumn  = 16
-		else:
-			self.maxColumn  = 32
-
-	def unsetPrintMode(self, mask):
-		self.printMode &= ~mask
-		self.writePrintMode()
-		if self.printMode & self.DOUBLE_HEIGHT_MASK:
-			self.charHeight = 48
-		else:
-			self.charHeight = 24
-		if self.printMode & self.DOUBLE_WIDTH_MASK:
-			self.maxColumn  = 16
-		else:
-			self.maxColumn  = 32
-
-	def writePrintMode(self):
-		self.writeBytes(27, 33, self.printMode)
-
-	def doubleHeightOn(self):
-		self.setPrintMode(self.DOUBLE_HEIGHT_MASK)
-
-	def doubleHeightOff(self):
-		self.unsetPrintMode(self.DOUBLE_HEIGHT_MASK)
-
-	def doubleWidthOn(self):
-		self.setPrintMode(self.DOUBLE_WIDTH_MASK)
-
-	def doubleWidthOff(self):
-		self.unsetPrintMode(self.DOUBLE_WIDTH_MASK)
-
-	def normal(self):
-		self.printMode = 0
-		self.writePrintMode()
 	
 	# === Style commands ===
 	
@@ -324,11 +275,13 @@ class atp(Serial):
 	def inverseOff(self):
 		self.writeBytes(29, 66, 0)
 
+
 	def upsideDownOn(self):
 		self.writeBytes(27, 123, 1)
 
 	def upsideDownOff(self):
 		self.writeBytes(27, 123, 0)
+
 
 	def sidewaysOn(self):     
 		self.writeBytes(27, 86, 1)
@@ -336,36 +289,20 @@ class atp(Serial):
 	def sidewaysOff(self): 
 		self.writeBytes(27, 86, 0)   
 
+
 	def boldOn(self):
 		self.writeBytes(27, 69, 1)
 
 	def boldOff(self):
 		self.writeBytes(27, 69, 0)
 
-	# Underlines of two different weights can be produced:
-	# 1 - 1 dot thick underline
-	# 2 - 2 dot thick underline
+
 	def underlineOn(self, weight=1):
+		# weight may be 1 or 2
 		self.writeBytes(27, 45, weight)
 
 	def underlineOff(self):
 		self.underlineOn(0)
-
-	# - setting other style commands seems to reset font to fontA,
-	#   so we end up in a state with full size font by tiny metrics.
-	def tinyFontOn(self):
-		# 27 33
-		self.writeBytes(27, 33, 1)
-		self.charHeight = 17
-		self.maxColumn = 42
-		# 22 lineheight = 17 char + 5 inter lineSpacing
-		self.setLineHeight(22)
-	
-	def tinyFontOff(self):
-		self.writeBytes(27, 33, 0)
-		self.charHeight = 24
-		self.maxColumn = 32
-		self.setLineHeight()
 
 	# === Feed commands ===
 
@@ -398,7 +335,42 @@ class atp(Serial):
 	
 	def justify(self, mode=LEFT):
 		self.writeBytes(27, 97, mode)
+	
+	NORMAL = 0
+	TINY   = 1
+	TALL   = 16
+	WIDE   = 32
+	LARGE  = 48
+	
+	def setSize(self, size=NORMAL):
+		if size == self.NORMAL:
+			self.charHeight  = 24
+			self.maxColumn   = 32
+			self.lineSpacing = 8
+		elif size == self.TINY:
+			self.charHeight  = 17
+			self.maxColumn   = 42
+			self.lineSpacing = 4
+		elif size == self.WIDE:
+			self.charHeight  = 24
+			self.maxColumn   = 16
+			self.lineSpacing = 8
+		elif size == self.TALL:
+			self.charHeight  = 48
+			self.maxColumn   = 32
+			self.lineSpacing = 8
+		elif size == self.LARGE:
+			self.charHeight  = 48
+			self.maxColumn   = 16
+			self.lineSpacing = 8
+		self.writeBytes(27, 33, size)
+		# update line height based on character height and line spacing
+		self.writeBytes(27, 51, self.charHeight + self.lineSpacing)
 
+	def setLineSpacing(self, spacing=lineSpacing):
+		self.lineSpacing = spacing
+		self.writeBytes(27, 51, self.charHeight + self.lineSpacing)
+	
 	# Set a tab stop at the listed columns (>0)
 	# Call with no args to reset (remove) tab stops
 	# Contrary to documentation, I find no default tab stops
@@ -407,42 +379,6 @@ class atp(Serial):
 		for stop in stops:
 			self.writeBytes(stop)
 		self.writeBytes(0)
-
-	# L (large) = double width and double height
-	# M (medium) = double height
-	# W (wide) = double width
-	# S (standard)
-	# Todo: reconcile with writePrintMode size methods
-	def setSize(self, value):
-		c = value.upper()
-		if c == 'L':   # Large: double width and height
-			size            = 0x11
-			self.charHeight = 48
-			self.maxColumn  = 16
-		elif c == 'M': # Medium: double height
-			size            = 0x01
-			self.charHeight = 48
-			self.maxColumn  = 32
-		elif c =='W': # Wide: double width
-			size            = 0x10
-			self.charHeight = 24
-			self.maxColumn  = 16
-		else:          # Small: standard width and height
-			size            = 0x00
-			self.charHeight = 24
-			self.maxColumn  = 32
-		self.writeBytes(29, 33, size)
-
-	def setLineHeight(self, val=32):
-		if val < 24:
-			val = 24
-		self.lineSpacing = val - 24
-
-		# The printer doesn't take into account the current text
-		# height when setting line height, making this more akin
-		# to inter-line spacing.  Default line spacing is 32
-		# (char height of 24, line spacing of 8).
-		self.writeBytes(27, 51, val)
 
 	# === Bitmap/image commands ===
 
