@@ -374,6 +374,10 @@ class Adafruit_Thermal(Serial):
 		self.writeBytes(27, 74, rows)
 		self.timeoutSet(rows * self.dotFeedTime)
 
+	# feed enough rows to clear the cut line
+	def feedClear(self):
+		self.feedRows(60)
+
 	# Set a tab stop at the listed columns (>0)
 	# Call with no args to reset (remove) tab stops
 	# Contrary to documentation, I find no default tab stops
