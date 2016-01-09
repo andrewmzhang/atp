@@ -204,19 +204,6 @@ class Adafruit_Thermal(Serial):
 				self.timeoutSet(d)
 				self.prevByte = c
 
-
-	# The bulk of this method was moved into __init__,
-	# but this is left here for compatibility with older
-	# code that might get ported directly from Arduino.
-	def begin(self, heatTime=defaultHeatTime):
-		self.writeBytes(
-		  27,       # Esc
-		  55,       # 7 (print settings)
-		  20,       # Heat dots (20 = balance darkness w/no jams)
-		  heatTime, # Lib default = 45
-		  250)      # Heat interval (500 uS = slower but darker)
-
-
 	def reset(self):
 		self.prevByte      = '\n' # Treat as if prior line is blank
 		self.column        =  0
@@ -381,7 +368,6 @@ class Adafruit_Thermal(Serial):
 		else:
 			pos = 0
 		self.writeBytes(0x1B, 0x61, pos)
-
 
 	# Feeds by the specified number of lines
 	def feed(self, x=1):
