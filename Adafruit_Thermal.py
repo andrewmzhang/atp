@@ -101,7 +101,7 @@ class Adafruit_Thermal(Serial):
 		self.writeBytes(
 		  27,       # Esc
 		  55,       # 7 (print settings)
-		  12,       # Heat dots (20 = balance darkness w/no jams)
+		  20,       # Heat dots (20 = balance darkness w/no jams)
 		  heatTime, # Lib default = 45
 		  120)      # Heat interval (500 uS = slower but darker)
 
