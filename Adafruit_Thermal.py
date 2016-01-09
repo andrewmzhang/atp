@@ -535,17 +535,6 @@ class Adafruit_Thermal(Serial):
 			self.writeBytes(27)
 			self.timeoutSet(0.1)
 
-	# Check the status of the paper using the printers self reporting
-	# ability. Doesn't match the datasheet...
-	# Returns True for paper, False for no paper.
-	def hasPaper(self):
-		self.writeBytes(27, 118, 0)
-		# Bit 2 of response seems to be paper status
-		stat = ord(self.read(1)) & 0b00000100
-		# If set, we have paper; if clear, no paper
-		return stat == 0
-
-
 	def setLineHeight(self, val=32):
 		if val < 24:
 			val = 24
