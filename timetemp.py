@@ -14,7 +14,7 @@
 # http://www.adafruit.com/products/600 Printer starter pack
 
 from __future__ import print_function
-from Adafruit_Thermal import *
+from atp import *
 from xml.dom.minidom import parseString
 import Image, ImageDraw, time, urllib, sys
 
@@ -165,6 +165,6 @@ if windUnits == 'kph': img.paste(Kph, (x, y))
 else:                  img.paste(Mph, (x, y))
 
 # Open connection to printer and print image
-printer = Adafruit_Thermal(timeout=5)
+printer = atp(timeout=5)
 printer.printImage(img, True)
 printer.feed(3)

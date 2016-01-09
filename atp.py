@@ -37,7 +37,7 @@ from __future__ import print_function
 from serial import Serial
 import time
 
-class Adafruit_Thermal(Serial):
+class atp(Serial):
 
 	resumeTime      =  0.0
 	byteTime        =  0.0
@@ -203,7 +203,7 @@ class Adafruit_Thermal(Serial):
 		self.timeoutWait()
 		self.timeoutSet(len(args) * self.byteTime)
 		for arg in args:
-			super(Adafruit_Thermal, self).write(chr(arg))
+			super(atp, self).write(chr(arg))
 
 	# Override write() method to keep track of paper feed.
 	def write(self, *data):
@@ -211,7 +211,7 @@ class Adafruit_Thermal(Serial):
 			c = data[i]
 			if c != 0x13:
 				self.timeoutWait()
-				super(Adafruit_Thermal, self).write(c)
+				super(atp, self).write(c)
 				d = self.byteTime
 				if ((c == '\n') or
 				    (self.column == self.maxColumn)):
@@ -258,7 +258,7 @@ class Adafruit_Thermal(Serial):
 		# Print string
 		self.timeoutWait()
 		self.timeoutSet((self.barcodeHeight) * self.dotPrintTime)
-		super(Adafruit_Thermal, self).write(text)
+		super(atp, self).write(text)
 		self.prevByte = '\n'
 		self.feed(2)
 
@@ -483,7 +483,7 @@ class Adafruit_Thermal(Serial):
 
 			for y in range(chunkHeight):
 				for x in range(rowBytesClipped):
-					super(Adafruit_Thermal, self).write(
+					super(atp, self).write(
 					  chr(bitmap[i]))
 					i += 1
 				i += rowBytes - rowBytesClipped

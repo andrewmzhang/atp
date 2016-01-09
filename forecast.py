@@ -15,7 +15,7 @@
 
 from __future__ import print_function
 import urllib, time, sys
-from Adafruit_Thermal import *
+from atp import *
 from xml.dom.minidom import parseString
 
 # WOEID indicates the geographic location for the forecast.  It is
@@ -40,7 +40,7 @@ def forecast(idx):
 	printer.print(' high ' + hi)
 	printer.println(deg)
 
-printer = Adafruit_Thermal(timeout=5)
+printer = atp(timeout=5)
 deg     = chr(0xf8) # Degree symbol on thermal printer
 
 # Fetch forecast data from Yahoo!, parse resulting XML

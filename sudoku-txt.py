@@ -20,9 +20,9 @@
 
 from __future__ import print_function
 import sys, os, random, getopt, re
-from Adafruit_Thermal import *
+from atp import *
 
-printer = Adafruit_Thermal(timeout=5)
+printer = atp(timeout=5)
 
 def main():
   printer.setLineHeight(24) # So graphical chars fit together
