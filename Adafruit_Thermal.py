@@ -257,7 +257,7 @@ class Adafruit_Thermal(Serial):
 		  29, 107, type) # Barcode type
 		# Print string
 		self.timeoutWait()
-		self.timeoutSet((self.barcodeHeight + 40) * self.dotPrintTime)
+		self.timeoutSet((self.barcodeHeight) * self.dotPrintTime)
 		super(Adafruit_Thermal, self).write(text)
 		self.prevByte = '\n'
 		self.feed(2)
