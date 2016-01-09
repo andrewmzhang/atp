@@ -407,13 +407,11 @@ class Adafruit_Thermal(Serial):
 		prevByte = '\n' # Setting the size adds a linefeed
 
 
-	# Underlines of different weights can be produced:
-	# 0 - no underline
-	# 1 - normal underline
-	# 2 - thick underline
+	# Underlines of two different weights can be produced:
+	# 1 - 1 dot thick underline
+	# 2 - 2 dot thick underline
 	def underlineOn(self, weight=1):
 		self.writeBytes(27, 45, weight)
-
 
 	def underlineOff(self):
 		self.underlineOn(0)
