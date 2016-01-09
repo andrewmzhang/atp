@@ -15,11 +15,11 @@ printer.println("Double Height ON")
 printer.doubleHeightOff()
 
 # Set justification (right, center, left) -- accepts 'L', 'C', 'R'
-printer.justify('R')
+printer.justify(printer.RIGHT)
 printer.println("Right justified")
-printer.justify('C')
+printer.justify(printer.CENTER)
 printer.println("Center justified")
-printer.justify('L')
+printer.justify(printer.LEFT)
 printer.println("Left justified")
 
 # Test more styles
@@ -38,12 +38,13 @@ printer.println("Medium")
 printer.setSize('S')
 printer.println("Small")
 
-printer.justify('C')
+printer.justify(printer.CENTER)
 printer.println("normal\nline\nspacing")
 printer.setLineHeight(50)
 printer.println("Taller\nline\nspacing")
-printer.setLineHeight() # Reset to default
-printer.justify('L')
+ # Reset to default
+printer.setLineHeight()
+printer.justify()
 
 # Barcode examples
 printer.feed(1)

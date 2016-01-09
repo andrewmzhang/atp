@@ -135,7 +135,7 @@ class Adafruit_Thermal(Serial):
 	# Reset text formatting parameters.
 	def setDefault(self):
 		self.online()
-		self.justify('L')
+		self.justify()
 		self.inverseOff()
 		self.upsideDownOff()
 		self.sidewaysOff()
@@ -401,16 +401,13 @@ class Adafruit_Thermal(Serial):
 		self.writeBytes(12)
 
 	# === Layout commands ===
-
-	def justify(self, value):
-		c = value.upper()
-		if   c == 'C':
-			pos = 1
-		elif c == 'R':
-			pos = 2
-		else:
-			pos = 0
-		self.writeBytes(0x1B, 0x61, pos)
+	
+	LEFT   = 0
+	CENTER = 1
+	RIGHT  = 2
+	
+	def justify(self, mode=LEFT):
+		self.writeBytes(27, 97, mode)
 
 	# Set a tab stop at the listed columns (>0)
 	# Call with no args to reset (remove) tab stops

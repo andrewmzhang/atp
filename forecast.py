@@ -47,7 +47,7 @@ deg     = chr(0xf8) # Degree symbol on thermal printer
 dom = parseString(urllib.urlopen(
         'http://weather.yahooapis.com/forecastrss?w=' + WOEID).read())
 
-printer.justify('C')
+printer.justify(printer.CENTER)
 
 # Print heading
 city = dom.getElementsByTagName('yweather:location')[0].getAttribute('city')
@@ -65,7 +65,7 @@ printer.boldOff()
 
 printer.println(dom.getElementsByTagName('pubDate')[0].firstChild.data)
 
-printer.justify('L')
+printer.justify(printer.LEFT)
 
 temp = dom.getElementsByTagName('yweather:condition')[0].getAttribute('temp')
 cond = dom.getElementsByTagName('yweather:condition')[0].getAttribute('text')
@@ -75,12 +75,12 @@ printer.println(' ' + cond)
 
 # Print forecast
 
-printer.justify('C')
+printer.justify(printer.CENTER)
 printer.boldOn()
 printer.println('Forecast:')
 printer.boldOff()
 
-printer.justify('L')
+printer.justify(printer.LEFT)
 
 forecast(0)
 forecast(1)
