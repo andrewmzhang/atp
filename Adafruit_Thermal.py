@@ -374,6 +374,15 @@ class Adafruit_Thermal(Serial):
 		self.writeBytes(27, 74, rows)
 		self.timeoutSet(rows * self.dotFeedTime)
 
+	# Set a tab stop at the listed columns (>0)
+	# Call with no args to reset (remove) tab stops
+	# Contrary to documentation, I find no default tab stops
+	def setTabs(self, *stops):
+		self.writeBytes(27, 68)
+		for stop in stops:
+			self.writeBytes(stop)
+		self.writeBytes(0)
+
 	def flush(self):
 		self.writeBytes(12)
 
