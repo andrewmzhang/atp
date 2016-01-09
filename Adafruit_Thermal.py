@@ -228,14 +228,6 @@ class Adafruit_Thermal(Serial):
 		self.setBarcodeHeight(50)
 		self.setSize('s')
 
-
-	def test(self):
-		self.writeBytes(18, 84)
-		self.timeoutSet(
-		  self.dotPrintTime * 24 * 26 +
-		  self.dotFeedTime  * (8 * 26 + 32))
-
-
 	UPC_A   =  0
 	UPC_E   =  1
 	EAN13   =  2
