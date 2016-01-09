@@ -275,7 +275,6 @@ class atp(Serial):
 	BOLD_MASK          = (1 << 3)
 	DOUBLE_HEIGHT_MASK = (1 << 4)
 	DOUBLE_WIDTH_MASK  = (1 << 5)
-	STRIKE_MASK        = (1 << 6)
 
 	def setPrintMode(self, mask):
 		self.printMode |= mask
@@ -341,12 +340,6 @@ class atp(Serial):
 
 	def sidewaysOff(self): 
 		self.writeBytes(27, 86, 0)   
-
-	def strikeOn(self):
-		self.setPrintMode(self.STRIKE_MASK)
-
-	def strikeOff(self):
-		self.unsetPrintMode(self.STRIKE_MASK)
 
 	def boldOn(self):
 		self.setPrintMode(self.BOLD_MASK)
