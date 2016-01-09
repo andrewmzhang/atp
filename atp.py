@@ -417,23 +417,25 @@ class atp(Serial):
 
 		self.prevByte = '\n'
 
-	# Print Image.  Requires Python Imaging Library.  This is
-	# specific to the Python port and not present in the Arduino
-	# library.  Image will be cropped to 384 pixels width if
-	# necessary, and converted to 1-bit w/diffusion dithering.
-	# For any other behavior (scale, B&W threshold, etc.), use
-	# the Imaging Library to perform such operations before
-	# passing the result to this function.
+	# Print Image.  Requires Python Imaging Library.
+	# Image will be scaled to fit 384 pixels width if necessary,
+	# and converted to 1-bit w/diffusion dithering.
+	# For any other behavior (B&W threshold, etc.),
+	# use the Imaging Library to perform such operations
+	# before passing the result to this function.
 	def printImage(self, image, LaaT=False):
 		import Image
-
+	
+		if image.size[0] > 384:
+			newsize = (384, int(image.size[1] / (image.size[0] / 384.0)))
+			image = image.resize(newsize, Image.ANTIALIAS)
+		
 		if image.mode != '1':
 			image = image.convert('1')
-
+		
 		width  = image.size[0]
 		height = image.size[1]
-		if width > 384:
-			width = 384
+		
 		rowBytes = (width + 7) / 8
 		bitmap   = bytearray(rowBytes * height)
 		pixels   = image.load()
