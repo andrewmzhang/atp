@@ -23,7 +23,10 @@ import Image, ImageDraw, time, urllib, sys
 # by 'manually' visiting http://weather.yahoo.com, entering a location
 # and requesting a forecast, then copy the number from the end of the
 # current URL string and paste it here.
-WOEID = sys.argv[1]
+if len(sys.argv) == 1:
+	WOEID = '2364363'
+else:
+	WOEID = sys.argv[1]
 
 # Fetch weather data from Yahoo!, parse resulting XML
 dom = parseString(urllib.urlopen(

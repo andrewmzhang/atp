@@ -23,7 +23,10 @@ from xml.dom.minidom import parseString
 # by 'manually' visiting http://weather.yahoo.com, entering a location
 # and requesting a forecast, then copy the number from the end of the
 # current URL string and paste it here.
-WOEID = sys.argv[1]
+if len(sys.argv) == 1:
+	WOEID = '2364363'
+else:
+	WOEID = sys.argv[1]
 
 # Dumps one forecast line to the printer
 def forecast(idx):
@@ -32,11 +35,10 @@ def forecast(idx):
 	lo      = dom.getElementsByTagName(tag)[idx].getAttribute('low')
 	hi      = dom.getElementsByTagName(tag)[idx].getAttribute('high')
 	cond    = dom.getElementsByTagName(tag)[idx].getAttribute('text')
-	printer.print(day + ': low ' + lo )
+	printer.print(day + ': low ' + lo)
 	printer.print(deg)
 	printer.print(' high ' + hi)
-	printer.print(deg)
-	printer.println(' ' + cond)
+	printer.println(deg)
 
 printer = Adafruit_Thermal(timeout=5)
 deg     = chr(0xf8) # Degree symbol on thermal printer
@@ -45,29 +47,43 @@ deg     = chr(0xf8) # Degree symbol on thermal printer
 dom = parseString(urllib.urlopen(
         'http://weather.yahooapis.com/forecastrss?w=' + WOEID).read())
 
+printer.justify('C')
+
 # Print heading
-printer.inverseOn()
-printer.print('{:^32}'.format(
-  dom.getElementsByTagName('description')[0].firstChild.data))
-printer.inverseOff()
+city = dom.getElementsByTagName('yweather:location')[0].getAttribute('city')
+state = dom.getElementsByTagName('yweather:location')[0].getAttribute('region')
+#printer.inverseOn()
+printer.underlineOn()
+printer.println(city + ', ' + state)
+#printer.inverseOff()
+printer.underlineOff()
 
 # Print current conditions
 printer.boldOn()
-printer.print('{:^32}'.format('Current conditions:'))
+printer.println('Current:')
 printer.boldOff()
-printer.print('{:^32}'.format(
-  dom.getElementsByTagName('pubDate')[0].firstChild.data))
+
+printer.println(dom.getElementsByTagName('pubDate')[0].firstChild.data)
+
+printer.justify('L')
+
 temp = dom.getElementsByTagName('yweather:condition')[0].getAttribute('temp')
 cond = dom.getElementsByTagName('yweather:condition')[0].getAttribute('text')
 printer.print(temp)
 printer.print(deg)
 printer.println(' ' + cond)
-printer.boldOn()
 
 # Print forecast
-printer.print('{:^32}'.format('Forecast:'))
+
+printer.justify('C')
+printer.boldOn()
+printer.println('Forecast:')
 printer.boldOff()
+
+printer.justify('L')
+
 forecast(0)
 forecast(1)
+forecast(2)
 
-printer.feed(3)
+printer.feed(2)
