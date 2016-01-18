@@ -99,7 +99,7 @@ class atp(Serial):
 		  55,       # 7 (print settings)
 		  30,       # Heat dots (20 = balance darkness w/no jams)
 		  heatTime, # Lib default = 45
-		  120)      # Heat interval (500 uS = slower but darker)
+		  200)      # Heat interval (500 uS = slower but darker)
 
 		# Description of print density from page 23 of the manual:
 		# DC2 # n Set printing density
@@ -121,7 +121,10 @@ class atp(Serial):
 		# reduced dotPrintTime to mitigate stutter delay when
 		# calling write() many times. Partly an issue with how
 		# write() tracks newlines and calculates [too much] delay
-		self.dotPrintTime = 0.002
+		
+		# 0.008 stutters on a long text
+		# 0.002 flies, but progress bar indicates it is sent faster than it prints
+		self.dotPrintTime = 0.0045
 		
 		self.dotFeedTime  = 0.0021
 
