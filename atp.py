@@ -97,7 +97,7 @@ class atp(Serial):
 		self.writeBytes(
 		  27,       # Esc
 		  55,       # 7 (print settings)
-		  20,       # Heat dots (20 = balance darkness w/no jams)
+		  30,       # Heat dots (20 = balance darkness w/no jams)
 		  heatTime, # Lib default = 45
 		  120)      # Heat interval (500 uS = slower but darker)
 
@@ -117,8 +117,12 @@ class atp(Serial):
 		  18, # DC2
 		  35, # Print density
 		  (printBreakTime << 5) | printDensity)
-
-		self.dotPrintTime = 0.03
+		
+		# reduced dotPrintTime to mitigate stutter delay when
+		# calling write() many times. Partly an issue with how
+		# write() tracks newlines and calculates [too much] delay
+		self.dotPrintTime = 0.002
+		
 		self.dotFeedTime  = 0.0021
 
 	def reset(self):
@@ -139,7 +143,7 @@ class atp(Serial):
 		self.upsideDownOff()
 		self.sidewaysOff()
 		self.doubleHeightOff()
-		self.setLineHeight(32)
+		#self.setLineHeight(32)
 		self.boldOff()
 		self.underlineOff()
 		self.setBarcodeHeight(50)
