@@ -6,25 +6,14 @@ import sys
 
 class TPJob():
 	
+	# font metrics.
+	# 'name': [row height, characters per line]
+	# row height = font height + associated default line spacing
 	metrics = {
 			'tall':   [56, 32],
 			'medium': [32, 32],
 			'small':  [21, 42]
 	}
-	
-	# fixed metrics for each section's font
-	titleWrapWidth = 32
-	titleFontHeight = 48
-	titleLineSpacing = 8
-	titleLineHeight = titleFontHeight + titleLineSpacing
-	creditWrapWidth = 32
-	creditFontHeight = 24
-	creditLineSpacing = 8
-	creditLineHeight = creditFontHeight + creditLineSpacing
-	textWrapWidth = 42
-	textFontHeight = 17
-	textLineSpacing = 4
-	textLineHeight = textFontHeight + textLineSpacing
 	
 	# rows to feed to clear the serrated cutter when print done
 	feedRows = 64
