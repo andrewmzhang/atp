@@ -215,10 +215,8 @@ def main():
 	ap = ArgumentParser(description='Prepare a text file for receipt printer.')
 	ap.add_argument('--verbatim', action='store_true', default=False,
 			help='Assume input text is pre-formatted.')
-	ap.add_argument('--save', action='store', default=None, metavar='PATH',
-			help='Write formatted text to FILE.')
-	ap.add_argument('--dump', action='store_true', default=False,
-			help='Write formatted text to stdout.')
+	ap.add_argument('--dump', default=None, type=FileType('w'), metavar='PATH',
+			help='Write formatted text to PATH (- for stdout).')
 	ap.add_argument('--print', dest='toast', action='store_true', default=False,
 			help='Send output to printer.')
 	ap.add_argument('--copies', type=positive_integer, action='store', default=1, metavar='N',
@@ -250,12 +248,9 @@ def main():
 		print "Total length for {n:d} copies: {mm:.0f} mm ({inch:.1f} inches or {foot:.2f} feet)".format(
 			n=args.copies, mm=length, inch=length / 25.4, foot=length / 304.8)
 	
-	# 4. Output the reformatted text to file or stdout if requested.
-	if args.save != None:
-		with open(args.save, 'w') as outputFile:
-			job.dump(outputFile)
-	if args.dump:
-		job.dump()
+	# 4. Output the reformatted text if requested.
+	if args.dump != None:
+		job.dump(args.dump)
 	
 	# 5. Print the text only if instructed. If a length limit is specified,
 	#    do not print if the estimated length exceeds the specified maximum.
