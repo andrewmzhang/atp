@@ -203,7 +203,15 @@ class Progressbar():
 def main():
 
 	from argparse import ArgumentParser
-
+	
+	# argparse option validators
+	def positive_integer(string):
+		value = int(string)
+		if value <= 0:
+			msg = "%r is not a positive integer" % string
+			raise argparse.ArgumentTypeError(msg)
+		return value
+	
 	ap = ArgumentParser(description='Prepare a text file for receipt printer.')
 	ap.add_argument('--verbatim', action='store_true', default=False,
 			help='Assume input text is pre-formatted.')
@@ -213,8 +221,10 @@ def main():
 			help='Write formatted text to stdout.')
 	ap.add_argument('--print', dest='toast', action='store_true', default=False,
 			help='Send output to printer.')
+	ap.add_argument('--copies', type=positive_integer, action='store', default=1, metavar='N',
+			help='Print N copies.')
 	ap.add_argument('--limit', type=float, action='store', default=None, metavar='MAX',
-			help='Send output to printer only if estimated length < MAX.')
+			help='Send output to printer only if total estimated length < MAX.')
 	ap.add_argument('--size', action='store', choices=['small', 'medium'], default='small',
 			help='Body font size.')
 	ap.add_argument('INPUT', action='store',
@@ -233,8 +243,12 @@ def main():
 	
 	# 3. Calculate and report estimated paper length.
 	length = job.estimate(args.size)
-	print "Estimate: {mm:.0f} mm ({inch:.1f} inches or {foot:.2f} feet)".format(
+	print "Estimated document length: {mm:.0f} mm ({inch:.1f} inches or {foot:.2f} feet)".format(
 		mm=length, inch=length / 25.4, foot=length / 304.8)
+	if args.copies > 1:
+		length *= args.copies
+		print "Total length for {n:d} copies: {mm:.0f} mm ({inch:.1f} inches or {foot:.2f} feet)".format(
+			n=args.copies, mm=length, inch=length / 25.4, foot=length / 304.8)
 	
 	# 4. Output the reformatted text to file or stdout if requested.
 	if args.save != None:
@@ -246,7 +260,8 @@ def main():
 	# 5. Print the text only if instructed. If a length limit is specified,
 	#    do not print if the estimated length exceeds the specified maximum.
 	if (args.limit == None and args.toast) or (args.limit != None and length <= args.limit):
-		job.send(args.size)
+		for i in range(args.copies):
+			job.send(args.size)
 	else:
 		if args.limit != None:
 			print "Estimated length exceeds limit of {mm:.0f} mm.".format(mm=args.limit)
