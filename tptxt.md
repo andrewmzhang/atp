@@ -5,7 +5,8 @@ Usage
 -----
 
 	usage: tptxt.py [-h] [--verbatim] [--dump PATH] [--print] [--copies N]
-					[--limit MAX] [--size {small,medium}]
+					[--limit MAX] [--size {small,medium}] [--header]
+					[--title TITLE] [--subtitle SUBTITLE]
 					[INPUT]
 
 	Prepare a text file for receipt printer.
@@ -23,11 +24,15 @@ Usage
 							< MAX.
 	  --size {small,medium}
 							Body font size.
+	  --header              Text begins with title and subtitle header lines.
+	  --title TITLE         Text title. Overrides title from header if present.
+	  --subtitle SUBTITLE   Text subtitle. Overrides subtitle from header if
+							present.
 
 Examples
 --------
 
-	./tptxt.py txt/masque-original.txt --size small --dump txt/masque-small.txt --print
+	./tptxt.py txt/masque-original.txt --size small --dump txt/masque-small.txt --header --print
 	> Estimated document length: 943 mm (37.1 inches or 3.09 feet)
 
 This command wraps the [input text](txt/masque-original.txt) to 42 characters per line using the default `small` font. The [output](txt/masque-small.txt) looks like this:
@@ -36,7 +41,7 @@ This command wraps the [input text](txt/masque-original.txt) to 42 characters pe
  
  For comparison, here the same text is printed using the `medium` font:
 
-	./tptxt.py txt/masque-original.txt --size medium --dump txt/masque-medium.txt --print
+	./tptxt.py txt/masque-original.txt --size medium --dump txt/masque-medium.txt --header --print
 	> Estimated document length: 1902 mm (74.9 inches or 6.24 feet)
 
 In this case, the [output](masque-medium.txt) is wrapped to 32 characters per line. It looks like this:
