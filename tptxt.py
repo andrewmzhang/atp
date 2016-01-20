@@ -202,7 +202,7 @@ class Progressbar():
 
 def main():
 
-	from argparse import ArgumentParser
+	from argparse import ArgumentParser, FileType
 	
 	# argparse option validators
 	def positive_integer(string):
@@ -227,14 +227,14 @@ def main():
 			help='Send output to printer only if total estimated length < MAX.')
 	ap.add_argument('--size', action='store', choices=['small', 'medium'], default='small',
 			help='Body font size.')
-	ap.add_argument('INPUT', action='store',
-			help='Path to input text file.')
+	ap.add_argument('INPUT', action='store', nargs='?', type=FileType('r'), default=sys.stdin,
+			help='Input text file.')
 	args = ap.parse_args()
 	
-	# 1. Read the textfile. Title and credit lines assumed present but may be unwrapped.
-	with open(args.INPUT, 'r') as inputFile:
-		# readlines without trailing newline/whitespace
-		job= TPJob([line.rstrip() for line in inputFile])
+	# 1. Read the textfile, stripping trailing newlines/whitespace.
+	# Title and credit lines assumed present but may be unwrapped.
+	job= TPJob([line.rstrip() for line in args.INPUT])
+	args.INPUT.close()
 	
 	# 2. Reformat unless instructed to use input as-is. (Preformatted? Maybe needless.)
 	#    Reformatting entails Unicode-to-ASCII transliteration and word wrapping.
