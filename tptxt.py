@@ -22,50 +22,58 @@ class TPJob():
 	# actual value may be very slightly higher
 	mmPerRow = 0.125
 	
-	# each file is comprised of a title, credit byline, and text body
 	# these lists hold the lines that comprise each of those sections
 	titleLines = []
-	creditLines = []
+	subtitleLines = []
 	textLines = []
 	
-	def __init__(self, lines):
+	def __init__(self, lines, header=False, title=None, subtitle=None):
 		
 		lineIndex = 0
 		
-		# loop through lines until first blank, appending everything to titleLines
-		for line in lines:
-			lineIndex += 1
-			if line == '':
-				break
-			self.titleLines.append(line)
+		if header == True:
 		
-		for line in lines[lineIndex:]:
-			if line == '':
-				break
-			# increment line index after break from credit
-			# to include the following blank line in text.
-			lineIndex += 1
-			self.creditLines.append(line)
+			# loop through lines until first blank, appending everything to titleLines
+			for line in lines:
+				lineIndex += 1
+				if line == '':
+					break
+				self.titleLines.append(line)
+			
+			for line in lines[lineIndex:]:
+				lineIndex += 1
+				if line == '':
+					break
+				# increment line index after break from subtitle
+				# to include the following blank line in text.
+				self.subtitleLines.append(line)
+		
+		if title:
+			self.titleLines = title
+		
+		if subtitle:
+			self.subtitleLines = subtitle
 		
 		self.textLines = lines[lineIndex:]
 		
 	def dump(self, outputFile=None):
 		
-		for line in self.titleLines:
-			print >> outputFile, line
-		print >> outputFile
+		if len(self.titleLines) > 0:
+			for line in self.titleLines:
+				print >> outputFile, line
+			print >> outputFile
 		
-		for line in self.creditLines:
-			print >> outputFile, line
-		# treating blank line after credit as first line of text
-		#print >> outputFile
-		
+		if len(self.subtitleLines) > 0:
+			for line in self.subtitleLines:
+				print >> outputFile, line
+			print >> outputFile
+			
 		for line in self.textLines:
 			print >> outputFile, line
 	
 	def reformat(self, size='small'):
 		self.reformatTitle()
-		self.reformatCredit()
+		self.reformatSubtitle()
 		self.reformatText(size)
 	
 	def reformatTitle(self):
@@ -74,11 +82,11 @@ class TPJob():
 			newTitleLines.extend(wrap(unidecode(titleLine.decode('utf_8')), self.metrics['tall'][1]))
 		self.titleLines = newTitleLines
 	
-	def reformatCredit(self):
-		newCreditLines = []
-		for creditLine in self.creditLines:
-			newCreditLines.extend(wrap(unidecode(creditLine.decode('utf_8')), self.metrics['medium'][1]))
-		self.creditLines = newCreditLines
+	def reformatSubtitle(self):
+		newSubtitleLines = []
+		for subtitleLine in self.subtitleLines:
+			newSubtitleLines.extend(wrap(unidecode(subtitleLine.decode('utf_8')), self.metrics['medium'][1]))
+		self.subtitleLines = newSubtitleLines
 	
 	def reformatText(self, size):
 		newTextLines = []
@@ -91,9 +99,15 @@ class TPJob():
 	
 	def estimate(self, size='small'):
 		totalTapeLength = self.titleTapeLength()
-		totalTapeLength += self.creditTapeLength()
+		totalTapeLength += self.subtitleTapeLength()
+		
+		# whitespace row between title/subtitle (if present) and text
+		if totalTapeLength > 0:
+			totalTapeLength += self.tapeLength(1, self.metrics[size][0])
+		
 		totalTapeLength += self.textTapeLength(size)
 		totalTapeLength += self.feedTapeLength()
+		
 		# 2.5 fudge for agreement with actual length of a particular test case
 		# repeat tests with files of varying length and adjust mmPerRow to resolve
 		return totalTapeLength + 2.5
@@ -104,8 +118,8 @@ class TPJob():
 	def titleTapeLength(self):
 		return self.tapeLength(len(self.titleLines), self.metrics['tall'][0])
 	
-	def creditTapeLength(self):
-		return self.tapeLength(len(self.creditLines), self.metrics['medium'][0])
+	def subtitleTapeLength(self):
+		return self.tapeLength(len(self.subtitleLines), self.metrics['medium'][0])
 	
 	def textTapeLength(self, size):
 		return self.tapeLength(len(self.textLines), self.metrics[size][0])
@@ -118,30 +132,41 @@ class TPJob():
 		from atp import atp
 		p = atp(timeout=5)
 		
+		nt = len(self.titleLines)
+		ns = len(self.subtitleLines)
+		
 		# display a progress bar to be updated as each line is printed
 		# also useful for assessing serial speed/sync - which finishes first?
-		steps = len(self.titleLines) + len(self.creditLines) + len(self.textLines)
+		steps = nt + ns + len(self.textLines)
 		progress = Progressbar(steps)
 		
-		# title and credit are centered
-		p.justify(p.CENTER)
+		# title and subtitle are centered
+		if nt > 0 or ns > 0:
+			p.justify(p.CENTER)
 		
 		# title is tall font
-		p.setSize(p.TALL)
-		for t in self.titleLines:
-			p.write(t, '\n')
-			progress.update()
+		if nt > 0:
+			p.setSize(p.TALL)
+			for t in self.titleLines:
+				p.write(t, '\n')
+				progress.update()
 		
-		# credit is normal font
-		p.setSize(p.NORMAL)
-		for t in self.creditLines:
-			p.write(t, '\n')
-			progress.update()
+		# subtitle is normal font
+		if ns > 0:
+			p.setSize(p.NORMAL)
+			for t in self.subtitleLines:
+				p.write(t, '\n')
+				progress.update()
 		
 		# body text is left justified
 		# body font is user selected
 		p.justify(p.LEFT)
 		p.setSize({'tall': p.TALL, 'medium': p.NORMAL, 'small': p.TINY}[size])
+		
+		# insert one row of text height whitespace after title/subtitle 
+		if nt > 0 or ns > 0:
+			p.feed(1)
+		
 		for t in self.textLines:
 			if t == "*" or t == "***":
 				# horizontal rule hack
@@ -225,13 +250,18 @@ def main():
 			help='Send output to printer only if total estimated length < MAX.')
 	ap.add_argument('--size', action='store', choices=['small', 'medium'], default='small',
 			help='Body font size.')
+	ap.add_argument('--header', action='store_true', default=False,
+			help='Text begins with title and subtitle header lines.')
+	ap.add_argument('--title', action='append', default=None,
+			help='Text title. Overrides title from header if present.')
+	ap.add_argument('--subtitle', action='append', default=None,
+			help='Text subtitle. Overrides subtitle from header if present.')
 	ap.add_argument('INPUT', action='store', nargs='?', type=FileType('r'), default=sys.stdin,
 			help='Input text file.')
 	args = ap.parse_args()
 	
 	# 1. Read the textfile, stripping trailing newlines/whitespace.
-	# Title and credit lines assumed present but may be unwrapped.
-	job= TPJob([line.rstrip() for line in args.INPUT])
+	job= TPJob([line.rstrip() for line in args.INPUT], header=args.header, title=args.title, subtitle=args.subtitle)
 	args.INPUT.close()
 	
 	# 2. Reformat unless instructed to use input as-is. (Preformatted? Maybe needless.)
