@@ -6,6 +6,12 @@ import sys
 
 class TPJob():
 	
+	metrics = {
+			'tall':   [56, 32],
+			'medium': [32, 32],
+			'small':  [21, 42]
+	}
+	
 	# fixed metrics for each section's font
 	titleWrapWidth = 32
 	titleFontHeight = 48
@@ -68,37 +74,36 @@ class TPJob():
 		for line in self.textLines:
 			print >> outputFile, line
 	
-	def reformat(self):
+	def reformat(self, size='small'):
 		self.reformatTitle()
 		self.reformatCredit()
-		self.reformatText()
+		self.reformatText(size)
 	
 	def reformatTitle(self):
 		newTitleLines = []
 		for titleLine in self.titleLines:
-			newTitleLines.extend(wrap(unidecode(titleLine.decode('utf_8')), self.titleWrapWidth))
+			newTitleLines.extend(wrap(unidecode(titleLine.decode('utf_8')), self.metrics['tall'][1]))
 		self.titleLines = newTitleLines
 	
 	def reformatCredit(self):
 		newCreditLines = []
 		for creditLine in self.creditLines:
-			newCreditLines.extend(wrap(unidecode(creditLine.decode('utf_8')), self.creditWrapWidth))
+			newCreditLines.extend(wrap(unidecode(creditLine.decode('utf_8')), self.metrics['medium'][1]))
 		self.creditLines = newCreditLines
 	
-	def reformatText(self):
-		# todo: consecutive text lines should 
+	def reformatText(self, size):
 		newTextLines = []
 		for textLine in self.textLines:
-			tl = wrap(unidecode(textLine.decode('utf_8')), self.textWrapWidth)
+			tl = wrap(unidecode(textLine.decode('utf_8')), self.metrics[size][1])
 			if tl == []:
 				tl = ['']
 			newTextLines.extend(tl)
 		self.textLines = newTextLines
 	
-	def estimate(self):
+	def estimate(self, size='small'):
 		totalTapeLength = self.titleTapeLength()
 		totalTapeLength += self.creditTapeLength()
-		totalTapeLength += self.textTapeLength()
+		totalTapeLength += self.textTapeLength(size)
 		totalTapeLength += self.feedTapeLength()
 		# 2.5 fudge for agreement with actual length of a particular test case
 		# repeat tests with files of varying length and adjust mmPerRow to resolve
@@ -108,18 +113,18 @@ class TPJob():
 		return lineCount * rowsPerLine * self.mmPerRow
 		
 	def titleTapeLength(self):
-		return self.tapeLength(len(self.titleLines), self.titleLineHeight)
+		return self.tapeLength(len(self.titleLines), self.metrics['tall'][0])
 	
 	def creditTapeLength(self):
-		return self.tapeLength(len(self.creditLines), self.creditLineHeight)
+		return self.tapeLength(len(self.creditLines), self.metrics['medium'][0])
 	
-	def textTapeLength(self):
-		return self.tapeLength(len(self.textLines), self.textLineHeight)
+	def textTapeLength(self, size):
+		return self.tapeLength(len(self.textLines), self.metrics[size][0])
 	
 	def feedTapeLength(self):
 		return self.tapeLength(1, self.feedRows)
 	
-	def send(self):
+	def send(self, size='small'):
 		
 		from atp import atp
 		p = atp(timeout=5)
@@ -144,9 +149,10 @@ class TPJob():
 			p.write(t, '\n')
 			progress.update()
 		
-		# body text is tiny font
+		# body text is left justified
+		# body font is user selected
 		p.justify(p.LEFT)
-		p.setSize(p.TINY)
+		p.setSize({'tall': p.TALL, 'medium': p.NORMAL, 'small': p.TINY}[size])
 		for t in self.textLines:
 			if t == "*" or t == "***":
 				# horizontal rule hack
@@ -220,6 +226,8 @@ def main():
 			help='Send output to printer.')
 	ap.add_argument('--limit', type=float, action='store', default=None, metavar='MAX',
 			help='Send output to printer only if estimated length < MAX.')
+	ap.add_argument('--size', action='store', choices=['small', 'medium'], default='small',
+			help='Body font size.')
 	ap.add_argument('INPUT', action='store',
 			help='Path to input text file.')
 	args = ap.parse_args()
@@ -232,10 +240,10 @@ def main():
 	# 2. Reformat unless instructed to use input as-is. (Preformatted? Maybe needless.)
 	#    Reformatting entails Unicode-to-ASCII transliteration and word wrapping.
 	if not args.verbatim:
-		job.reformat()
+		job.reformat(args.size)
 	
 	# 3. Calculate and report estimated paper length.
-	length = job.estimate()
+	length = job.estimate(args.size)
 	print "Estimate: {mm:.0f} mm ({inch:.1f} inches or {foot:.2f} feet)".format(
 		mm=length, inch=length / 25.4, foot=length / 304.8)
 	
@@ -249,7 +257,7 @@ def main():
 	# 5. Print the text only if instructed. If a length limit is specified,
 	#    do not print if the estimated length exceeds the specified maximum.
 	if (args.limit == None and args.toast) or (args.limit != None and length <= args.limit):
-		job.send()
+		job.send(args.size)
 	else:
 		if args.limit != None:
 			print "Estimated length exceeds limit of {mm:.0f} mm.".format(mm=args.limit)
