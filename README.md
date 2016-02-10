@@ -10,4 +10,5 @@ Scripts
 -------
 
 * [tptxt](tptxt.md) - Format and print plain text files.
+* [tpmd](tpmd.md) - Format and print Markdown styled text.
 * pt - Print images.
