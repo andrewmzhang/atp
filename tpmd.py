@@ -72,9 +72,9 @@ class ATPRenderer(mistune.Renderer):
 	def autolink(self, link, is_email=False):
 		return [
 			# underline
-			[27, 45, 1],
+			27, 45, 1,
 			link,
-			[27, 45, 0]
+			27, 45, 0
 		]
 	
 	def codespan(self, text):
@@ -83,17 +83,17 @@ class ATPRenderer(mistune.Renderer):
 	def double_emphasis(self, text):
 		return [
 			# bold
-			[29, 69, 1],
+			29, 69, 1,
 			text[0],
-			[29, 69, 0]
+			29, 69, 0
 		]
 		
 	def emphasis(self, text):
 		return [
 			# underline
-			[27, 45, 2],
+			27, 45, 2,
 			text[0],
-			[27, 45, 0]
+			27, 45, 0
 		]
 		
 	def image(self, src, title, alt_text):
@@ -108,9 +108,9 @@ class ATPRenderer(mistune.Renderer):
 	
 	def link(self, link, title, content):
 		return [
-			[27, 45, 1],
+			27, 45, 1,
 			content,
-			[27, 45, 0]
+			27, 45, 0
 		]
 		
 	def strikethrough(self, text):
@@ -147,6 +147,64 @@ md = mistune.Markdown(renderer=atpr, hard_wrap=False)
 contentList = md(c)
 print contentList
 
+"""
+	Flatten nested list
+	http://stackoverflow.com/a/952952
+	
+		for sublist in contentList:
+			for item in sublist:
+				yield item
+	
+	(Probably possible to build the list flat in the first place...)
+"""
+flatContentList = [item for sublist in contentList for item in sublist]
+print flatContentList
+
+"""
+
+	Apply textwrapping to text extracted from the flattened content list.
+	(At this point, input markup characters will have been filtered out.)
+	
+	Count characters between \n to get line width. Insert \ns where necessary.
+	
+	(Also, could unidecode text spans now. Should do it prior to wrapping in
+	case the transliterated version have more or fewer characters.)
+	
+	Adjacent string elements can be concatenated for simplicity.
+	
+	Wrap counting continues (jumps) across text spans, resetting only at \n.
+	
+	So basically:
+	
+		start at beginning of list
+		count = 0
+		foreach character:
+			if \n
+				reset count
+			else
+				increment count
+			
+			if count >= limit # 32 or 42
+				insert \n at span count; reset counts
+				(keep a separate "span count" that *does* reset at each new element...)
+				
+
+"""
+
+linemax = 32
+linecount = 0
+
+for e in flatContentList:
+	
+	# skip numeric elements
+	if not isinstance(e, str):
+		continue
+	
+	spancount = 0
+	
+	
+	
+"""
 # contentList is composed of numbers (format control codes),
 # strings (text to be printed), and sub-lists that may contain
 # the same content. writeMarkdownTree traverses this list
@@ -166,3 +224,4 @@ class md_atp(atp):
 p = md_atp()
 p.writeMarkdownTree(contentList)
 p.feedClear()
+"""
