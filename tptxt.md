@@ -29,6 +29,22 @@ Usage
 	  --subtitle SUBTITLE   Text subtitle. Overrides subtitle from header if
 							present.
 
+Header
+------
+
+If `--header` is set, all non-empty `INPUT` lines until the first blank line are used as the file title. All non-empty lines between the first blank line and the second blank line are used as the file subtitle. By default, there is no title or subtitle.
+
+If set, the `--title` and `--subtitle` parameter values take precedence over the empty default or the `--header` values read from the file.
+
+The file title is printed centered in `tall` font. The file subtitle is printed centered in `normal` font. (The file text is printed in the user-selected font `--size`.)
+
+Special Formatting
+------------------
+
+A line consisting of one or three asterisks (`*` or `***`) will be printed as a small centered horizontal rule.
+
+A line beginning with a caret character (`^`) will be centered. The caret will not be printed.
+
 Examples
 --------
 
