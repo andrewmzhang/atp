@@ -89,6 +89,12 @@ class TPJob():
 		self.subtitleLines = newSubtitleLines
 	
 	def reformatText(self, size):
+		
+		# Try treating consecutive lines that are not blank as part of the same
+		# line (joined by a space). Blank lines ([] or '') denote true new lines.
+		# So, first concatenate runs of non-blank lines, inserting spaces if needed,
+		# *then* wrap them, and append the wrapped concatenation to the output lines.
+		
 		newTextLines = []
 		for textLine in self.textLines:
 			tl = wrap(unidecode(textLine.decode('utf_8')), self.metrics[size][1])
@@ -173,6 +179,10 @@ class TPJob():
 				p.justify(p.CENTER)
 				p.writeBytes(0xC4, 0xC4, 0xC4)
 				p.write('\n')
+				p.justify(p.LEFT)
+			elif t.find('^') == 0:
+				p.justify(p.CENTER)
+				p.write(t[1:], '\n')
 				p.justify(p.LEFT)
 			else:
 				p.write(t, '\n')
